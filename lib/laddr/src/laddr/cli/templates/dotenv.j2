@@ -14,7 +14,8 @@ DATABASE_URL=postgresql://laddr:laddr@postgres:5432/laddr
 
 # Message Broker
 REDIS_URL=redis://redis:6379
-# KAFKA_BOOTSTRAP=localhost:9092
+# KAFKA_BOOTSTRAP=kafka:9092
+
 
 # ===================================
 # Storage Backend (S3-Compatible)
@@ -41,7 +42,7 @@ STORAGE_SECURE=false
 
 # Large Response Storage
 # Automatically offload large responses to storage backend
-# ENABLE_LARGE_RESPONSE_STORAGE=true
+ENABLE_LARGE_RESPONSE_STORAGE=true
 STORAGE_THRESHOLD_KB=100
 
 # ===================================

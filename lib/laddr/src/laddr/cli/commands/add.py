@@ -15,9 +15,11 @@ from ..utils import (
     AgentNotFoundError,
     ProjectNotFoundError,
     add_worker_to_compose,
+    console,
     get_template_renderer,
-    print_info,
-    print_success,
+    print_completion,
+    print_header,
+    print_step,
     validate_project_directory,
     write_file,
 )
@@ -66,7 +68,7 @@ def add_agent(
     if not validate_project_directory(Path.cwd()):
         raise ProjectNotFoundError()
 
-    print_info(f"Adding agent: {agent_name}")
+    print_header(f"Adding Agent → {agent_name}")
 
     # Prompt for missing details
     if not role:
@@ -77,6 +79,7 @@ def add_agent(
         backstory = click.prompt("Agent backstory", default="", show_default=False)
 
     # Create agent files
+    print_step("Generating agent file", f"agents/{agent_name}.py")
     _create_agent_files(
         agent_name=agent_name,
         role=role,
@@ -86,9 +89,9 @@ def add_agent(
         llm_model=llm_model,
     )
 
-    print_success(f"Agent {agent_name} created")
-    print_info(f"  Agent: agents/{agent_name}.py")
-    print_info("  Docker service added to docker-compose.yml")
+    print_completion(f"Agent '{agent_name}' created")
+    console.print("[dim]Next:[/dim]")
+    console.print(f"  [cyan]laddr run agent {agent_name} --inputs '{{}}'[/cyan]\n")
 
 
 @add.command("tool")
@@ -123,7 +126,7 @@ def add_tool(
     if not validate_project_directory(Path.cwd()):
         raise ProjectNotFoundError()
 
-    print_info(f"Adding tool: {tool_name}")
+    print_header(f"Adding Tool → {tool_name}")
 
     # Determine target agent
     if not agent:
@@ -133,18 +136,19 @@ def add_tool(
         if not agents:
             raise AgentNotFoundError("No agents found in project")
         agent = agents[0]
-        print_info(f"Attaching to agent: {agent}")
+        print_step("Attaching to agent", agent)
 
     # Prompt for description if not provided
     if not description:
         description = click.prompt("Tool description", default=f"{tool_name} tool")
 
     # Create tool file
+    print_step("Generating tool file", f"tools/{tool_name}.py")
     _create_tool_file(tool_name, agent, description)
 
-    print_success(f"Tool {tool_name} created")
-    print_info(f"  File: tools/{tool_name}.py")
-    print_info(f"  Import and add {tool_name} to agents/{agent}.py tools list if needed")
+    print_completion(f"Tool '{tool_name}' created")
+    console.print(f"[dim]Add to agents/{agent}.py:[/dim]")
+    console.print(f"  [dim]from tools.{tool_name} import {tool_name}[/dim]\n")
 
 
 def _create_agent_files(

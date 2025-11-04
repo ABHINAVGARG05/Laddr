@@ -9,7 +9,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import click
-from rich.progress import Progress, SpinnerColumn, TextColumn
 import yaml
 
 from ..utils import (
@@ -19,8 +18,9 @@ from ..utils import (
     ProjectExistsError,
     add_worker_to_compose,
     get_template_renderer,
-    print_panel,
-    print_success,
+    print_completion,
+    print_header,
+    print_step,
     validate_project_directory,
     write_file,
 )
@@ -48,7 +48,9 @@ def init(project_name: str | None, path: str):
     """
     # Prompt for project name if not provided
     if not project_name:
-        project_name = click.prompt("Project name")
+        from ..utils import console
+        console.print()
+        project_name = click.prompt("[cyan]Project name[/cyan]", type=str)
 
     # Resolve project path
     project_path = Path(path)
@@ -82,46 +84,42 @@ def init(project_name: str | None, path: str):
         if not validate_project_directory(project_path):
             raise ProjectExistsError(str(project_path))
 
-    print_panel(
-        "Initializing Laddr Project",
-        f"Creating project: [bold]{project_path.name}[/bold]",
-    )
+    # Print header
+    print_header(f"Initializing Laddr Project → {project_path.name}")
 
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-    ) as progress:
-        task = progress.add_task("Creating project structure...", total=None)
+    # Create directory structure
+    print_step("Creating project structure")
+    _create_directories(project_path)
 
-        # Create directory structure
-        _create_directories(project_path)
+    # Generate core modules (no-op in V3.0)
+    _generate_core_modules(project_path)
 
-        # Generate core modules
-        progress.update(task, description="Generating core modules...")
-        _generate_core_modules(project_path)
+    # Generate configuration files
+    print_step("Creating configuration", "laddr.yml, .env")
+    _generate_config_files(project_path, project_path.name)
 
-        # Generate configuration files
-        progress.update(task, description="Creating configuration...")
-        _generate_config_files(project_path, project_path.name)
+    # Generate Docker setup
+    print_step("Setting up Docker", "compose, Dockerfile, requirements")
+    _generate_docker_setup(project_path)
 
-        # Generate Docker setup
-        progress.update(task, description="Creating Docker configuration...")
-        _generate_docker_setup(project_path)
+    # Generate default agent
+    print_step("Creating agents", "coordinator, researcher")
+    _generate_default_agent(project_path)
 
-        # Generate default agent
-        progress.update(task, description="Seeding default agent...")
-        _generate_default_agent(project_path)
+    # Generate README
+    print_step("Generating documentation", "README.md")
+    _generate_readme(project_path, project_path.name)
 
-        # Generate README
-        progress.update(task, description="Creating README...")
-        _generate_readme(project_path, project_path.name)
+    # Success message
+    print_completion(f"Project created at {project_path}")
 
-    print_success(f"Project created: {project_path}")
-    print_panel(
-        "Next Steps",
-        f"cd {project_path if project_path != Path.cwd() else '.'}\nladdr run dev",
-        style="green",
-    )
+    # Next steps
+    from ..utils import console
+    
+    console.print("[dim]Get started:[/dim]")
+    if project_path != Path.cwd():
+        console.print(f"  [cyan]cd {project_path}[/cyan]")
+    console.print(f"  [cyan]laddr run dev[/cyan]\n")
 
 
 def _create_directories(project_path: Path) -> None:

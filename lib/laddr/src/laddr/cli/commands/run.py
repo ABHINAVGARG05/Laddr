@@ -19,6 +19,8 @@ from ..utils import (
         check_docker,
         check_docker_compose,
         compose_up,
+        console,
+        print_header,
         print_info,
         print_panel,
         print_success,
@@ -68,35 +70,53 @@ def run_dev(build: bool, detach: bool):
     check_docker()
     check_docker_compose()
 
-    print_panel(
-        "Starting Laddr Development Environment",
-        "Building and starting all services...",
-    )
+    print_header("Starting Laddr Development Environment")
 
-    # Start services - if not detached, stream logs immediately
-    if not detach:
-        print_info("Starting services and streaming logs (Ctrl+C to stop)...")
-        try:
-            compose_up(detach=False, build=build)
-        except KeyboardInterrupt:
+    # Build command for docker compose up
+    cmd = ["docker", "compose", "up"]
+    if build:
+        cmd.append("--build")
+    
+    # In detached mode, start services in background first
+    if detach:
+        cmd.append("-d")
+    
+    # Start services and show logs
+    try:
+        if not detach:
+            # Non-detached mode: stream logs live (Ctrl+C to stop)
+            print_info("Starting services and streaming logs (Ctrl+C to stop)...")
+            subprocess.run(cmd, check=False)
+        else:
+            # Detached mode: start in background, then show all logs
+            print_info("Starting services in detached mode...")
+            result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+            if result.returncode != 0:
+                print_info(f"Error starting services: {result.stderr}")
+                raise click.ClickException("Failed to start services")
+            
+            # Wait a moment for services to initialize
+            print_info("Waiting for services to initialize...")
+            time.sleep(3)
+            
+            # Show all logs from all services
+            print_info("Showing service logs...\n")
+            subprocess.run(["docker", "compose", "logs"], check=False)
+            
+            # Wait for critical services to be ready
+            print_info("\nWaiting for services to be ready...")
+            critical_services = ["postgres", "redis", "api"]
+            for service in critical_services:
+                wait_for_service(service, timeout=30)
+            
+            print_success("\nLaddr is running!")
+            _print_service_info()
+            _print_management_commands()
+    
+    except KeyboardInterrupt:
+        if not detach:
             print_info("\nStopping services...")
             subprocess.run(["docker", "compose", "down"], check=False)
-        return
-
-    # Detached mode - start and wait for services
-    compose_up(detach=True, build=build)
-
-    # Wait for critical services
-    print_info("Waiting for services to be ready...")
-    time.sleep(5)
-
-    critical_services = ["postgres", "redis", "api"]
-    for service in critical_services:
-        wait_for_service(service, timeout=30)
-
-    print_success("Laddr is running!")
-    _print_service_info()
-    _print_management_commands()
 
 
 @run.command("pipeline")
@@ -121,6 +141,8 @@ def run_pipeline(pipeline_file: str):
 
     from laddr.core import AgentRunner, LaddrConfig  # type: ignore
 
+    print_header("Running Pipeline")
+
     results: dict[str, Any] = {}
     runner = AgentRunner(env_config=LaddrConfig())
     for stage in stages:
@@ -129,11 +151,14 @@ def run_pipeline(pipeline_file: str):
         inputs = stage.get("inputs", {k: v for k, v in stage.items() if k != "agent"})
         if not agent_name:
             raise click.BadParameter("Each stage must include 'agent'")
-        print_panel("Running pipeline stage", f"agent: {agent_name}")
+        console.print(f"  [dim]→[/dim] Running stage: [cyan]{agent_name}[/cyan]")
         res = asyncio.run(runner.run(inputs, agent_name=agent_name))
         results[agent_name] = res
 
-    print_panel("Pipeline complete", json.dumps(results, indent=2, ensure_ascii=False))
+    print_success("Pipeline complete")
+    console.print("\n[bold cyan]Results[/bold cyan]")
+    console.print(json.dumps(results, indent=2, ensure_ascii=False))
+    console.print()
 
 
 @run.command("agent")
@@ -174,7 +199,7 @@ def run_agent_cmd(agent_name: str, inputs_json: str):
     try:
         from laddr.core import LaddrConfig, run_agent
 
-        print_panel("Running agent", f"agent: {agent_name}")
+        print_header(f"Running Agent → {agent_name}")
 
         # Load environment config
         config = LaddrConfig()
@@ -184,7 +209,9 @@ def run_agent_cmd(agent_name: str, inputs_json: str):
 
         # Print result
         print_success(f"Job completed: {result['job_id']}")
-        print_panel("Result", json.dumps(result, indent=2, ensure_ascii=False))
+        console.print("\n[bold cyan]Result[/bold cyan]")
+        console.print(json.dumps(result, indent=2, ensure_ascii=False))
+        console.print()
 
     except Exception as e:
         print_info(f"Error: {e}")
@@ -207,7 +234,7 @@ def replay_job(job_id: str, reexecute: bool):
     try:
         from laddr.core import AgentRunner, LaddrConfig
 
-        print_panel("Replaying job", f"job_id: {job_id}\nreexecute: {reexecute}")
+        print_header(f"Replaying Job → {job_id}")
 
         # Load environment config
         config = LaddrConfig()
@@ -218,7 +245,9 @@ def replay_job(job_id: str, reexecute: bool):
 
         # Print result
         print_success("Job replay complete")
-        print_panel("Result", json.dumps(result, indent=2, ensure_ascii=False))
+        console.print("\n[bold cyan]Result[/bold cyan]")
+        console.print(json.dumps(result, indent=2, ensure_ascii=False))
+        console.print()
 
     except Exception as e:
         print_info(f"Error: {e}")
@@ -226,28 +255,23 @@ def replay_job(job_id: str, reexecute: bool):
 
 
 def _print_service_info() -> None:
-    """Print service URLs."""
-    print_panel(
-        "Services",
-        "[cyan]Dashboard:[/cyan]  http://localhost:5173\n"
-        "[cyan]API:[/cyan]        http://localhost:8000\n"
-        "[cyan]API Docs:[/cyan]   http://localhost:8000/docs\n"
-        "[cyan]Postgres:[/cyan]   localhost:5432\n"
-        "[cyan]Redis:[/cyan]      localhost:6379",
-        style="green",
-    )
+    """Print service URLs in minimalistic style."""
+    console.print("\n[bold cyan]Services[/bold cyan]")
+    console.print("  [dim]Dashboard[/dim]  http://localhost:5173")
+    console.print("  [dim]API[/dim]        http://localhost:8000")
+    console.print("  [dim]API Docs[/dim]   http://localhost:8000/docs")
+    console.print("  [dim]Postgres[/dim]   localhost:5432")
+    console.print("  [dim]Redis[/dim]      localhost:6379")
 
 
 def _print_management_commands() -> None:
-    """Print management command help."""
-    print_panel(
-        "Commands",
-        "laddr logs <agent>  - View agent logs\n"
-        "laddr ps            - Show container status\n"
-        "laddr scale <agent> <N> - Scale agent workers\n"
-        "laddr stop          - Stop all services",
-        style="cyan",
-    )
+    """Print management command help in minimalistic style."""
+    console.print("\n[bold cyan]Commands[/bold cyan]")
+    console.print("  [cyan]laddr logs <agent>[/cyan]      View agent logs")
+    console.print("  [cyan]laddr ps[/cyan]                Show container status")
+    console.print("  [cyan]laddr scale <agent> <N>[/cyan] Scale agent workers")
+    console.print("  [cyan]laddr stop[/cyan]              Stop all services")
+    console.print()
 
 
 # Alias for backward compatibility

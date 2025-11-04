@@ -231,7 +231,7 @@ async def health():
     
     return {
         "status": "ok",
-        "version": "0.5.0",
+        "version": "0.6.5",
         "components": {
             "database": db_type,
             "storage": storage_type,
