@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./assets/laddr.svg" alt="Laddr Logo" width="360" height="">
+<img src="./Assets/laddr.svg" alt="Laddr Logo" width="360" height="">
 
 **Production-ready framework for building scalable multi-agent systems**
 
@@ -13,7 +13,7 @@
 
 [Quick Start](#-quick-start) • [Features](#-features) • [Examples](#-examples) • [Documentation](#-documentation) • [Dashboard](#-dashboard--observability)
 
-<img src="./assets/dashboard.png" alt="Laddr Logo" width="600" height="315">
+<img src="./Assets/dashboard.png" alt="Laddr Logo" width="600" height="315">
 
 </div>
 
