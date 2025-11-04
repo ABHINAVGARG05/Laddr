@@ -11,7 +11,7 @@
 [![Redis](https://img.shields.io/badge/redis-7.0+-red.svg)](https://redis.io/)
 [![PostgreSQL](https://img.shields.io/badge/postgresql-15+-blue.svg)](https://www.postgresql.org/)
 
-[Quick Start](#-quick-start) • [Features](#-features) • [Examples](#-examples) • [Documentation](#-documentation) • [Dashboard](#-dashboard--observability)
+[Quick Start](#quick-start) • [Features](#features) • [Agent Example](#agent-example) • [Tool Example](#tool-example) • [Dashboard](#dashboard--observability)
 
 <img src="./Assets/dashboard.png" alt="Laddr Logo" width="600" height="315">
 
@@ -21,16 +21,15 @@
 
 ## Table of Contents
 
-- [What is Laddr?](#-what-is-laddr)
-- [Features](#-features)
-- [Quick Start](#-quick-start)
-- [Agent Example](#-agent-example)
-- [Tool Example](#-tool-example)
-- [FastAPI Runtime](#-fastapi-runtime--rest-api)
-- [Dashboard & Observability](#-dashboard--observability)
-- [Architecture](#-architecture)
-- [Documentation](#-documentation)
-- [License](#-license)
+- [What is Laddr?](#what-is-laddr)
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Agent Example](#agent-example)
+- [Tool Example](#tool-example)
+- [FastAPI Runtime](#fastapi-runtime--rest-api)
+- [Dashboard & Observability](#dashboard--observability)
+- [Architecture](#architecture)
+- [License](#license)
 
 ---
 
@@ -48,39 +47,39 @@ Pre-defined, predictable pipelines where tasks flow through agents in a fixed se
 
 ---
 
-## ✨ Features
+## Features
 
-### 🚀 Scalability & Performance
+### Scalability & Performance
 - **Horizontal scaling** — Scale each agent independently based on workload
 - **Multi-worker support** — Run multiple workers per agent for high throughput
 - **Automatic load balancing** — Redis Streams distribute tasks across workers
 - **Fault tolerance** — Worker failures don't stop the system
 
-### 📊 Observability & Monitoring
+### Observability & Monitoring
 - **Complete tracing** — Every agent action automatically logged to PostgreSQL
 - **Real-time metrics** — Job status, duration, success rates, queue depth
 - **Interactive dashboard** — Beautiful UI to monitor agents, traces, and logs
 - **Playground** — Test agents interactively with live streaming responses
 
-### 🔧 Developer Experience
+### Developer Experience
 - **Clean CLI** — Minimal, modern interface for project management
 - **Hot reload** — Code changes reflect instantly in development mode
 - **Type safety** — Full Python type hints throughout the codebase
 - **Simple setup** — One command (`laddr init`) to scaffold complete projects
 
-### 🎯 AI-Optimized Architecture
+### AI-Optimized Architecture
 - **Built-in delegation** — Agents can delegate tasks to other agents seamlessly
 - **Parallel execution** — Process multiple independent tasks simultaneously
 - **Context management** — Automatic artifact storage for large payloads (>1MB)
 - **Smart retries** — Configurable retry logic and timeout handling per agent
 
-### 🐳 Production Ready
+### Production Ready
 - **Docker native** — Everything runs in containers with docker-compose
 - **Queue-based messaging** — Redis Streams for reliable, distributed communication
 - **Artifact storage** — MinIO/S3 for handling large files and documents
 - **REST API** — FastAPI server with auto-generated OpenAPI documentation
 
-### 🔌 Extensibility
+### Extensibility
 - **Custom tools** — Add any Python function as an agent tool with `@tool` decorator
 - **LLM agnostic** — Works with Gemini, OpenAI, Anthropic, Groq, and local models
 - **Pluggable backends** — Swap Redis, PostgreSQL, or storage providers easily
