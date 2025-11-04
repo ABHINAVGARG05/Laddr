@@ -112,6 +112,38 @@ def print_panel(title: str, content: str, style: str = "cyan") -> None:
     console.print(Panel(content, title=f"[bold]{title}[/bold]", border_style=style))
 
 
+def print_header(text: str, style: str = "bold cyan") -> None:
+    """Print a minimalistic header.
+
+    Args:
+        text: Header text
+        style: Text style (default: bold cyan)
+    """
+    console.print(f"\n[{style}]{text}[/{style}]")
+
+
+def print_step(step: str, description: str = "") -> None:
+    """Print a step in a process with minimalistic style.
+
+    Args:
+        step: Step name/action
+        description: Optional description
+    """
+    if description:
+        console.print(f"  [dim]→[/dim] {step} [dim]{description}[/dim]")
+    else:
+        console.print(f"  [dim]→[/dim] {step}")
+
+
+def print_completion(message: str) -> None:
+    """Print a completion message with checkmark.
+
+    Args:
+        message: Completion message
+    """
+    console.print(f"\n[success]✓[/success] {message}\n")
+
+
 def print_table(data: list[dict], title: str | None = None) -> None:
     """Print data as a rich table.
 

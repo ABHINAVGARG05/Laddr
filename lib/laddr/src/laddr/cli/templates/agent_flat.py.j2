@@ -52,12 +52,14 @@ TOOLS = [web_search, scrape_url, extract_links]
 ## CRITICAL: Always use system_delegate_task with wait_for_response=true
 
 ### Correct delegation format (BLOCKING - waits for result):
-{{"type":"tool","tool":"system_delegate_task","params":{{"agent_name":"researcher","task":"<specific research query>","wait_for_response":true,"timeout_seconds":90}}}}
+{% raw %}
+{"type":"tool","tool":"system_delegate_task","params":{"agent_name":"researcher","task":"<specific research query>","wait_for_response":true,"timeout_seconds":90}}
 
 ### Real examples:
-{{"type":"tool","tool":"system_delegate_task","params":{{"agent_name":"researcher","task":"Search for the best ways to lose fat including diet and exercise recommendations","wait_for_response":true,"timeout_seconds":90}}}}
+{"type":"tool","tool":"system_delegate_task","params":{"agent_name":"researcher","task":"Search for the best ways to lose fat including diet and exercise recommendations","wait_for_response":true,"timeout_seconds":90}}
 
-{{"type":"tool","tool":"system_delegate_task","params":{{"agent_name":"researcher","task":"Find the top 3 programming languages in 2024 by popularity","wait_for_response":true,"timeout_seconds":90}}}}
+{"type":"tool","tool":"system_delegate_task","params":{"agent_name":"researcher","task":"Find the top 3 programming languages in 2024 by popularity","wait_for_response":true,"timeout_seconds":90}}
+{% endraw %}
 
 ## Workflow:
 1. Receive user query
@@ -84,13 +86,15 @@ TOOLS = [web_search, scrape_url, extract_links]
 ## Example of handling incomplete result:
 If delegation returns:
 ```
-{{
-  "status": "incomplete",
-  "result": "Maximum iterations reached",
-  "history": [
-    {{"tool": "web_search", "result": {{"results": [...]}}}}
-  ]
-}}
+{% raw %}
+{
+    "status": "incomplete",
+    "result": "Maximum iterations reached",
+    "history": [
+        {"tool": "web_search", "result": {"results": [...]}}
+    ]
+}
+{% endraw %}
 ```
 
 Extract the search results from history and synthesize them into your answer!
@@ -138,18 +142,23 @@ Remember: One good delegation + smart synthesis beats three similar delegations!
 
 ## Tool Usage Examples:
 
+{% raw %}
 ### Step 1 - First search:
-{{"type":"tool","tool":"web_search","params":{{"query":"best hotels Shimla 2024 reviews guest ratings","max_results":5}}}}
+{"type":"tool","tool":"web_search","params":{"query":"best hotels Shimla 2024 reviews guest ratings","max_results":5}}
 
 ### Step 2 - If needed, different angle:
-{{"type":"tool","tool":"web_search","params":{{"query":"Oberoi Cecil Shimla luxury amenities 2024","max_results":5}}}}
+{"type":"tool","tool":"web_search","params":{"query":"Oberoi Cecil Shimla luxury amenities 2024","max_results":5}}
 
 ### Step 3 - Synthesize and finish:
-{{"type":"finish","answer":"Based on 2024 reviews, the top hotels in Shimla are:\\n\\n1. **The Oberoi Cecil** - Colonial luxury, spa, excellent reviews\\n2. **Wildflower Hall** - Oberoi Resort in Himalayas, premium amenities\\n3. **Clarkes Hotel** - Heritage property, Mall Road location\\n\\nSources: TripAdvisor, Expedia, Booking.com rankings"}}
+{"type":"finish","answer":"Based on 2024 reviews, the top hotels in Shimla are:\n\n1. **The Oberoi Cecil** - Colonial luxury, spa, excellent reviews\n2. **Wildflower Hall** - Oberoi Resort in Himalayas, premium amenities\n3. **Clarkes Hotel** - Heritage property, Mall Road location\n\nSources: TripAdvisor, Expedia, Booking.com rankings"}
+{% endraw %}
 
 ## What NOT to do:
-❌ {{"type":"delegate","agent":"analyzer",...}}  // NEVER delegate!
-❌ {{"type":"tool","tool":"system_retrieve_artifact",...}}  // NOT for searching!
+{% raw %}
+❌ {"type":"delegate","agent":"analyzer",...}  // NEVER delegate!
+❌ {"type":"tool","tool":"system_retrieve_artifact",...}  // NOT for searching!
+{% endraw %}
+
 ❌ Don't retry scraping the same URL if it returns 403 Forbidden
 ❌ Don't do 5+ searches on the same topic - synthesize after 2-3 searches
 

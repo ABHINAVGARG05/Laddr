@@ -348,19 +348,20 @@ class ArtifactStorageTool:
         key: str | None = None,
     ) -> dict:
         """
-        Retrieve previously stored artifact data using its artifact_id.
+        Retrieve previously stored artifact data using its artifact_id or key.
         
         IMPORTANT: Only use this tool if:
         1. You previously called store_artifact and received an artifact_id
         2. A delegation response explicitly contains {"stored_in_registry": true, "artifact_id": "..."}
+        3. A delegation response was offloaded with {"offloaded": true, "key": "responses/..."}
 
         Parameters:
-        - artifact_id (required): The UUID returned from store_artifact
+        - artifact_id: UUID from store_artifact OR a full storage key path (e.g., "responses/2025/11/04/<id>.json")
         - artifact_type (optional): Type label like "generic", "result", etc
         - bucket (optional): For direct MinIO retrieval (advanced usage)
         - key (optional): For direct MinIO retrieval (advanced usage)
 
-        DO NOT use this tool with task_id, job_id, or other identifiers. Only use artifact_id.
+        DO NOT use this tool with task_id, job_id, or other identifiers unless they are actual artifact IDs.
         If delegation response contains data directly, you already have the full result - no retrieval needed.
 
         Returns:
@@ -393,6 +394,52 @@ class ArtifactStorageTool:
                     "error": str(e),
                     "status": "not_found",
                 }
+
+        # Detect if artifact_id is actually a full key path (contains slashes)
+        # This handles the case where an offloaded response key is passed as artifact_id
+        if artifact_id and "/" in artifact_id:
+            # This is likely a response key like "responses/2025/11/04/<task_id>.json"
+            # Response storage uses the main bucket (not laddr-artifacts)
+            use_bucket = bucket or "laddr"  # Default to main bucket for responses
+            try:
+                data = await self.storage.get_object(bucket=use_bucket, key=artifact_id)
+                try:
+                    parsed_data = json.loads(data.decode())
+                except (json.JSONDecodeError, UnicodeDecodeError):
+                    parsed_data = data.decode(errors='replace')
+
+                return {
+                    "bucket": use_bucket,
+                    "key": artifact_id,
+                    "data": parsed_data,
+                    "size_bytes": len(data),
+                    "retrieved_at": datetime.utcnow().isoformat(),
+                }
+            except Exception as e:
+                # If not found in main bucket, try laddr-artifacts as fallback
+                try:
+                    fallback_bucket = "laddr-artifacts"
+                    data = await self.storage.get_object(bucket=fallback_bucket, key=artifact_id)
+                    try:
+                        parsed_data = json.loads(data.decode())
+                    except (json.JSONDecodeError, UnicodeDecodeError):
+                        parsed_data = data.decode(errors='replace')
+
+                    return {
+                        "bucket": fallback_bucket,
+                        "key": artifact_id,
+                        "data": parsed_data,
+                        "size_bytes": len(data),
+                        "retrieved_at": datetime.utcnow().isoformat(),
+                    }
+                except Exception:
+                    # Return original error
+                    return {
+                        "bucket": use_bucket,
+                        "key": artifact_id,
+                        "error": str(e),
+                        "status": "not_found",
+                    }
 
         # Legacy path: artifact registry lookup by id/type
         bucket = "laddr-artifacts"
