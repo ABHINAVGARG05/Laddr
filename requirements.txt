@@ -117,6 +117,6 @@ boto3-stubs[bedrock-runtime]>=1.40.54
 #   Uncomment the optional sections above and run:
 #   pip install -r requirements.txt
 
-laddr>=0.7.5
+laddr>=0.8.0
 build
 twine
