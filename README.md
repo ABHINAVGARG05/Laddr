@@ -2,7 +2,7 @@
 
 <img src="./Assets/laddr.svg" alt="Laddr Logo" width="360" height="">
 
-**Production-ready framework for building scalable multi-agent systems**
+**Your framework for building scalable multi-agent systems**
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
@@ -35,7 +35,7 @@
 
 ## What is Laddr?
 
-Laddr is a **production-ready framework** for building **multi-agent systems** where agents communicate, delegate tasks, and execute work in parallel. Think of it as a microservices architecture for AI agents — with built-in message queues, observability, and horizontal scalability.
+Laddr is a python framework for building **multi-agent systems** where agents communicate, delegate tasks, and execute work in parallel. Think of it as a microservices architecture for AI agents — with built-in message queues, observability, and horizontal scalability.
 
 ### Two Operating Modes
 
