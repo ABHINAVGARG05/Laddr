@@ -70,7 +70,7 @@ def run_dev(build: bool, detach: bool):
     check_docker()
     check_docker_compose()
 
-    print_header("Starting Laddr Development Environment")
+    print_header("Starting Laddr Development Environment (This may take a few minutes)")
 
     # Build command for docker compose up
     cmd = ["docker", "compose", "up"]

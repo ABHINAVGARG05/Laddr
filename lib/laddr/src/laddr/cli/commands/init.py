@@ -50,7 +50,10 @@ def init(project_name: str | None, path: str):
     if not project_name:
         from ..utils import console
         console.print()
-        project_name = click.prompt("[cyan]Project name[/cyan]", type=str)
+        # Use Rich console input to render markup (colors) correctly instead of
+        # passing markup through Click which prints raw markup tags.
+        # Console.input supports markup=True so the prompt will be colored.
+        project_name = console.input("[cyan]Project name: [/cyan]", markup=True).strip()
 
     # Resolve project path
     project_path = Path(path)
