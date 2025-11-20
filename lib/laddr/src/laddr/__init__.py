@@ -10,7 +10,7 @@ Laddr provides:
 - Real distributed runtime with message bus
 """
 
-__version__ = "0.8.2"
+__version__ = "0.8.3"
 
 # Core exports
 from laddr.core import (
